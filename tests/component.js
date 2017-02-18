@@ -89,7 +89,7 @@ describe('ReactBash component', () => {
     });
 
     describe('keyboard shortcuts', () => {
-        const keyEvent = (which) => Object.assign({ which }, baseEvent);
+        const keyEvent = (which, ctrlKey) => Object.assign({ which, ctrlKey }, baseEvent);
         let wrapper;
         let instance;
 
@@ -105,55 +105,45 @@ describe('ReactBash component', () => {
             chai.assert.strictEqual(spy.called, true);
         });
 
-        it('should set/unset ctrlPressed', () => {
-            chai.assert.strictEqual(instance.ctrlPressed, false);
-            wrapper.find('input').simulate('keydown', keyEvent(17));
-            chai.assert.strictEqual(instance.ctrlPressed, true);
-            wrapper.find('input').simulate('keyup', keyEvent(17));
-            chai.assert.strictEqual(instance.ctrlPressed, false);
-        });
-
         it('should clear on ctrl + l', () => {
             instance.setState({ history: [{ value: 'Foo' }] });
             chai.assert.strictEqual(wrapper.state().history.length, 1);
-            wrapper.find('input').simulate('keydown', keyEvent(17));
-            wrapper.find('input').simulate('keyup', keyEvent(76));
+            wrapper.find('input').simulate('keydown', keyEvent(76, true));
             chai.assert.strictEqual(wrapper.state().history.length, 0);
         });
 
         it('should not clear on only l', () => {
             instance.setState({ history: [{ value: 'Foo' }] });
             chai.assert.strictEqual(wrapper.state().history.length, 1);
-            wrapper.find('input').simulate('keyup', keyEvent(76));
+            wrapper.find('input').simulate('keydown', keyEvent(76));
             chai.assert.strictEqual(wrapper.state().history.length, 1);
         });
 
         it('should clear command line on ctrl + c', () => {
             const expected = '';
             instance.refs.input.value = 'help';
-            wrapper.find('input').simulate('keydown', keyEvent(17));
-            wrapper.find('input').simulate('keyup', keyEvent(67));
+            wrapper.find('input').simulate('keydown', keyEvent(67, true));
             chai.assert.strictEqual(instance.refs.input.value, expected);
         });
 
         it('should not clear command line on only c', () => {
             const expected = 'help';
             instance.refs.input.value = expected;
-            wrapper.find('input').simulate('keyup', keyEvent(67));
+            wrapper.find('input').simulate('keydown', keyEvent(67));
             chai.assert.strictEqual(instance.refs.input.value, expected);
         });
 
         it('should handle the up arrow', () => {
             sinon.stub(instance.Bash, 'hasPrevCommand').returns(true);
             sinon.stub(instance.Bash, 'getPrevCommand').returns('Foo');
-            wrapper.find('input').simulate('keyup', keyEvent(38));
+            wrapper.find('input').simulate('keydown', keyEvent(38));
             chai.assert.strictEqual(instance.refs.input.value, 'Foo');
         });
 
         it('should handle the down arrow', () => {
             sinon.stub(instance.Bash, 'hasNextCommand').returns(true);
             sinon.stub(instance.Bash, 'getNextCommand').returns('Foo');
-            wrapper.find('input').simulate('keyup', keyEvent(40));
+            wrapper.find('input').simulate('keydown', keyEvent(40));
             chai.assert.strictEqual(instance.refs.input.value, 'Foo');
         });
 

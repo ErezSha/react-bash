@@ -3,7 +3,6 @@ import * as BaseCommands from './commands';
 import Bash from './bash';
 import Styles from './styles';
 
-const CTRL_CHAR_CODE = 17;
 const L_CHAR_CODE = 76;
 const C_CHAR_CODE = 67;
 const UP_CHAR_CODE = 38;
@@ -22,9 +21,11 @@ export default class Terminal extends Component {
             history: history.slice(),
             structure: Object.assign({}, structure),
             cwd: '',
+            tabPressed: false,
         };
+        this.handleCtrlDown = this.handleCtrlDown.bind(this);
         this.handleKeyDown = this.handleKeyDown.bind(this);
-        this.handleKeyUp = this.handleKeyUp.bind(this);
+        this.handleTabPress = this.handleTabPress.bind(this);
     }
 
     componentDidMount() {
@@ -71,53 +72,37 @@ export default class Terminal extends Component {
         }
     }
 
+    handleCtrlDown(keyCode) {
+        if (keyCode === L_CHAR_CODE) {
+            this.setState(this.Bash.execute('clear', this.state));
+        } else if (keyCode === C_CHAR_CODE) {
+            this.refs.input.value = '';
+        }
+    }
+
+    handleTabPress() {
+        this.setState({ tabPressed: true });
+        this.attemptAutocomplete();
+    }
+
     /*
      * Handle keydown for special hot keys. The tab key
      * has to be handled on key down to prevent default.
      * @param {Event} evt - the DOM event
      */
     handleKeyDown(evt) {
-        if (evt.which === CTRL_CHAR_CODE) {
-            this.ctrlPressed = true;
-        } else if (evt.which === TAB_CHAR_CODE) {
-            // Tab must be on keydown to prevent default
-            this.attemptAutocomplete();
+        const { which, ctrlKey } = evt;
+        if (evt.which !== TAB_CHAR_CODE) this.setState({ tabPressed: false });
+        if (ctrlKey) {
             evt.preventDefault();
-        }
-    }
-
-    /*
-     * Handle keyup for special hot keys.
-     * @param {Event} evt - the DOM event
-     *
-     * -- Supported hot keys --
-     * ctrl + l : clear
-     * ctrl + c : cancel current command
-     * up - prev command from history
-     * down - next command from history
-     * tab - autocomplete
-     */
-    handleKeyUp(evt) {
-        if (evt.which === L_CHAR_CODE) {
-            if (this.ctrlPressed) {
-                this.setState(this.Bash.execute('clear', this.state));
-            }
-        } else if (evt.which === C_CHAR_CODE) {
-            if (this.ctrlPressed) {
-                this.refs.input.value = '';
-            }
-        } else if (evt.which === UP_CHAR_CODE) {
-            if (this.Bash.hasPrevCommand()) {
-                this.refs.input.value = this.Bash.getPrevCommand();
-            }
+            this.handleCtrlDown(which);
+        } else if (which === UP_CHAR_CODE) {
+            this.refs.input.value = this.Bash.getPrevCommand();
         } else if (evt.which === DOWN_CHAR_CODE) {
-            if (this.Bash.hasNextCommand()) {
-                this.refs.input.value = this.Bash.getNextCommand();
-            } else {
-                this.refs.input.value = '';
-            }
-        } else if (evt.which === CTRL_CHAR_CODE) {
-            this.ctrlPressed = false;
+            this.refs.input.value = this.Bash.getNextCommand() || '';
+        } else if (evt.which === TAB_CHAR_CODE) {
+            evt.preventDefault();
+            this.handleTabPress();
         }
     }
 
@@ -155,13 +140,7 @@ export default class Terminal extends Component {
                     {history.map(this.renderHistoryItem(style))}
                     <form onSubmit={evt => this.handleSubmit(evt)} style={style.form}>
                         <span style={style.prefix}>{`${prefix} ~${cwd} $`}</span>
-                        <input
-                          autoComplete="off"
-                          onKeyDown={this.handleKeyDown}
-                          onKeyUp={this.handleKeyUp}
-                          ref="input"
-                          style={style.input}
-                        />
+                        <input autoComplete="off" onKeyDown={this.handleKeyDown} ref="input" style={style.input} />
                     </form>
                 </div>
             </div>
