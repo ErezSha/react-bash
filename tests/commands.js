@@ -271,25 +271,25 @@ describe('bash commands', () => {
         });
 
         it('should print out empty arguments', () => {
-            const { history } = bash.commands.echo.exec(state, { input: 'echo' });
+            const { history } = bash.commands.echo.exec(state, { input: 'echo', args: {} });
             chai.assert.strictEqual(history.length, 1);
             chai.assert.strictEqual(history[0].value, '');
         });
 
         it('should print out arguments', () => {
-            const { history } = bash.commands.echo.exec(state, { input: 'echo foo bar' });
+            const { history } = bash.commands.echo.exec(state, { input: 'echo foo bar', args: { 0: 'foo', 1: 'bar' } });
             chai.assert.strictEqual(history.length, 1);
             chai.assert.strictEqual(history[0].value, 'foo bar');
         });
 
         it('should print out static environment variables', () => {
-            const { history } = bash.commands.echo.exec(state, { input: 'echo $HOME' });
+            const { history } = bash.commands.echo.exec(state, { input: 'echo $HOME', args: { 0: '$HOME' } });
             chai.assert.strictEqual(history.length, 1);
             chai.assert.strictEqual(history[0].value, '/');
         });
 
         it('should print out dynamic environment variables', () => {
-            const { history } = bash.commands.echo.exec(state, { input: 'echo $PWD' });
+            const { history } = bash.commands.echo.exec(state, { input: 'echo $PWD', args: { 0: '$PWD' } });
             chai.assert.strictEqual(history.length, 1);
             chai.assert.strictEqual(history[0].value, `/${state.cwd}`);
         });

@@ -1,6 +1,7 @@
 export const IS_SERVER = typeof window === 'undefined';
 
 export const BACK_REGEX = /\/?\.?[\w-_]+\/\.\./;
+export const COMMAND_LINE_REGEXP = /([^"'\{\}\[\]\s]+)|"(.*?)"|'(.*?)'/g;
 
 export const Errors = {
     COMMAND_NOT_FOUND: '-bash: $1: command not found',

@@ -118,12 +118,9 @@ export const pwd = {
 };
 
 export const echo = {
-    exec: (state, { input }) => {
-        const ECHO_LENGTH = 'echo '.length;
+    exec: (state, { args }) => {
         const envVariables = Util.getEnvVariables(state);
-        const value = input.slice(ECHO_LENGTH).replace(/(\$\w+)/g, key => {
-            return envVariables[key.slice(1)] || '';
-        });
+        const value = Object.keys(args).map((ak) => args[ak].replace(/(\$\w+)/g, key => envVariables[key.slice(1)] || '')).join(' ');
         return Object.assign({}, state, {
             history: state.history.concat({ value }),
         });

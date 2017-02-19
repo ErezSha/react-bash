@@ -45,6 +45,16 @@ describe('BashParser', () => {
             chai.assert.strictEqual(flags.a, true);
         });
 
+        it('should handle args inclosed in "" ', () => {
+            const { args } = BashParser.parseInput('echo "hello world"');
+            chai.assert.strictEqual(args[0], 'hello world');
+        });
+
+        it("should handle args inclosed in '' ", () => {
+            const { args } = BashParser.parseInput("echo 'hello world'");
+            chai.assert.strictEqual(args[0], 'hello world');
+        });
+
     });
 
     describe('parse', () => {

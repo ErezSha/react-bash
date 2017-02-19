@@ -1,3 +1,4 @@
+import { COMMAND_LINE_REGEXP } from './const';
 /*
  * This method parses a single command + args. It handles
  * the tokenization and processing of flags, anonymous args,
@@ -7,27 +8,36 @@
  * @returns {Object} the parsed command/arg dataf84t56y78ju7y6f
  */
 export function parseInput(input) {
-    const tokens = input.split(/ +/);
-    const name = tokens.shift();
+    // default return values
+    let name = '';
     const flags = {};
     const args = {};
     let anonArgPos = 0;
 
-    while (tokens.length > 0) {
-        const token = tokens.shift();
-        if (token[0] === '-') {
-            if (token[1] === '-') {
-                const next = tokens.shift();
-                args[token.slice(2)] = next;
-            } else {
-                token.slice(1).split('').forEach(flag => {
-                    flags[flag] = true;
-                });
-            }
-        } else {
-            args[anonArgPos++] = token;
+    // if input is empty, we shouldn't bother check against the regex
+    if (input === '') { return { name, flags, input, args }; }
+    let match = COMMAND_LINE_REGEXP.exec(input);
+    // collect the arguments into an array format
+    const cArgs = [];
+    while (match) {
+        for (let i = 1; i < match.length; i++) {
+            if (match[i]) cArgs.push(match[i].trim());
+        }
+        match = COMMAND_LINE_REGEXP.exec(input);
+    }
+    // the first argument must be the name of the command
+    name = cArgs.shift();
+    for (let argsIndex = 0; argsIndex < cArgs.length; argsIndex++) {
+        const r = cArgs[argsIndex];
+        if (r.startsWith('--')) { // args
+            args[r.slice(2)] = cArgs[++argsIndex];
+        } else if (r.startsWith('-')) { // flag
+            r.slice(1).split('').forEach((f) => { flags[f] = true; });
+        } else { // annon args
+            args[anonArgPos++] = r;
         }
     }
+
     return { name, flags, input, args };
 }
 
